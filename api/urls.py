@@ -21,7 +21,10 @@ from Home.views import (
     ReviewListAV,
     ReviewCreateAV,
     ReviewDetailAV,
+    RegisterAV,
+    LoginAPIView
 )
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
     # StreamPlatform
@@ -36,4 +39,7 @@ urlpatterns = [
     path('watchlist/<int:pk>/review/', ReviewListAV.as_view(), name='review-list'),
     path('watchlist/<int:pk>/review-create/', ReviewCreateAV.as_view(), name='review-create'),
     path('review/<int:pk>/', ReviewDetailAV.as_view(), name='review-detail'),
+    path('register/', RegisterAV.as_view(), name='register'),
+    path('login/', TokenObtainPairView.as_view(), name='login'),
+    path('login/refresh/', TokenRefreshView.as_view(), name='login-refresh'),
 ]

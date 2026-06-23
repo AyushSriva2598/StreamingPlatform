@@ -193,15 +193,49 @@
     
 
 from rest_framework import generics, status, filters
+from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 
 from .models import WatchList, StreamPlatform, Review
-from .serializer import WatchListSerializer,StreamPlatformSerializer,ReviewSerializer
+from .serializer import WatchListSerializer,StreamPlatformSerializer,ReviewSerializer, RegisterSerializer, LoginSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from api.filters import WatchListFilter
+from django.contrib.auth.models import User
+from django.contrib.auth import login
+from .permissions import IsReviewUserOrReadOnly
+
+
+class LoginAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        login(request, user)
+        return Response({
+            'status': True,
+            'message': 'Logged in successfully'
+        }, status=status.HTTP_200_OK)
+
+
+
+class RegisterAV(generics.CreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = RegisterSerializer
+    permission_classes=[AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response({
+            'status': True,
+            'message': 'User registered successfully'
+        }, status=status.HTTP_201_CREATED)
 
 
 
@@ -261,3 +295,4 @@ class ReviewCreateAV(generics.CreateAPIView):
 class ReviewDetailAV(generics.RetrieveUpdateDestroyAPIView):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [IsReviewUserOrReadOnly]
